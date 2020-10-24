@@ -1,19 +1,9 @@
-import os
-print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
-print("PATH:", os.environ.get('PATH'))
-print("PATH:", os.environ.get('PYTHONHOME'))
-
-import sys
-for p in sys.path:
-    print(p)
-
 import requests
 import datetime
 import time
 import os
 import pytz
-import pymongo
-import numpy
+import pymongo # not needed
 import pandas as pd
 import plotly_express as px
 import random
@@ -148,7 +138,7 @@ class telematics:
         query_columns = " ".join(columns)
 
 
-        ##Write assertion for valid date and time format
+        ##Write assertion for valid date and time format #Priority 4
         minTs = "minTs: \""+ min_date +"T"+ min_time+ ".000Z"+ "\" "
         maxTs = "maxTs: \""+ max_date +"T"+ max_time+ ".000Z"+ "\" "
 
@@ -370,7 +360,6 @@ class telematics:
                     continue
         return agg_loc_dict
 
-
     @staticmethod
     def location_collector_v2(response_object=[]):
         
@@ -402,7 +391,6 @@ class telematics:
             agg_loc_dict = {}
             
         return agg_loc_dict
-
 
     @staticmethod
     def unique_bluetooth_devices_v2(response_object=[], data_handler:list=[]):
@@ -467,14 +455,14 @@ class telematics:
 
     ##Create function to collect vin as document id and destinations from navi as values in array
     @staticmethod
-    def destination_collector(response_object=[], data_handler=[]):
+    def destination_collector(response_object=[]):
 
         ##Write doc string #Priority 2
 
         if len(response_object) > 0:
 
             #Necessary fields
-            neccesary_fields = ['vin', 'navi_destination_destination_latitude', 'navi_destination_destination_longitude']
+            neccesary_fields = ['vin', 'navigation_location_coordinate_longitude', 'navigation_location_coordinate_latitude', 'sequence']
 
             #Check if necessary fields are available
             valid_fields = all(field in response_object[0].keys() for field in neccesary_fields)
@@ -482,64 +470,67 @@ class telematics:
 
             agg_destination_dict = {}
             for entry in response_object:
-                if entry['navi_destination_destination_latitude'] is not None:
-                    destination = [entry['navi_destination_destination_latitude'], \
-                                   entry['navi_destination_destination_longitude'] ]
+                seq = str(entry['sequence'])
+                lat = entry["navigation_location_coordinate_latitude"]
+                lon = entry["navigation_location_coordinate_longitude"]
+                location = [lat, lon]
 
-                    if entry['vin'] not in agg_destination_dict.keys():
-                        agg_destination_dict[entry['vin']] = destination
-
-                    elif destination not in agg_destination_dict[entry['vin']]:
-                        agg_destination_dict[entry['vin']].append(destination)
-                    else:
-                        pass
-                else:
+                if entry['navigation_location_coordinate_longitude'] is None:
                     continue
+                elif entry['vin'] in agg_destination_dict.keys():
+                    agg_destination_dict[entry['vin']][seq] = location
+                elif entry['vin'] not in agg_destination_dict.keys():
+                    payload = {seq : location}
+                    agg_destination_dict[entry['vin']] = payload
 
             #Data Handler
-            if len(data_handler)>0:
-                data_handler(data= agg_destination_dict)
-            else:
-                pass
+            dc_mongo_handler(data= agg_destination_dict)
 
         else:
             agg_destination_dict = {}
 
         return agg_destination_dict
 
-    def sequence_collector(response_object=[], data_handler=[]):
-    
+    ##Create function to collect vin as document id and destinations from navi as values in array
+    @staticmethod
+    def destination_collector_demo(response_object=[]):
+
         ##Write doc string #Priority 2
 
-        #Necessary fields
-        neccesary_fields = ['vin', 'timestamp', 'sequence']
+        if len(response_object) > 0:
 
-        if len(response_object)>0:
-                
-                agg_seq_dict = {}
-                for entry in response_object:
+            #Necessary fields
+            neccesary_fields = ['vin', 'navigation_location_coordinate_longitude', 'navigation_location_coordinate_latitude', 'sequence']
 
-                    #Data reduction
-                    time_ymd_hm = datetime.datetime.strptime(entry['timestamp'][:-4], "%Y-%m-%d %H:%M:%S")
-                    ts_key = time_ymd_hm.strftime("%Y-%m-%d %H:%M")
-                    if time_ymd_hm.minute % 3 == 0 and entry['navigation_location_coordinate_longitude'] is not None:
-                        if entry['vin'] not in agg_loc_dict.keys():
-                            vin_key = entry['vin']
-                            loc_value = [entry['navigation_location_coordinate_latitude'],entry['navigation_location_coordinate_longitude']]
-                            agg_loc_dict[vin_key] = {ts_key: loc_value }
-                        elif ts_key not in agg_loc_dict[entry['vin']].keys():
-                            loc_value = [entry['navigation_location_coordinate_latitude'],entry['navigation_location_coordinate_longitude']]
-                            agg_loc_dict[entry['vin']][ts_key] = loc_value
-                        else:
-                            continue
+            #Check if necessary fields are available
+            valid_fields = all(field in response_object[0].keys() for field in neccesary_fields)
+            assert valid_fields, "Not all required fields are present in the response object"
 
-                #Data Handler
-                lc_mongo_handler(data=agg_loc_dict)
+            agg_destination_dict = {}
+            for entry in response_object:
+                seq = str(entry['sequence'])
+                lat = entry["navigation_location_coordinate_latitude"]
+                lon = entry["navigation_location_coordinate_longitude"]
+                location = [lat, lon]
+
+                if entry['navigation_location_coordinate_longitude'] is None:
+                    continue
+                elif entry['vin'] in agg_destination_dict.keys():
+                    agg_destination_dict[entry['vin']][seq] = location
+                elif entry['vin'] not in agg_destination_dict.keys():
+                    payload = {seq : location}
+                    agg_destination_dict[entry['vin']] = payload
+
+                print(agg_destination_dict)
+
         else:
-            agg_loc_dict = {}
-            
+            agg_destination_dict = {}
 
-##Potentially transfer to different sub-module
+        return agg_destination_dict
+
+
+
+##Potentially transfer to different sub-module #Priority 3
 def ubd_mongo_handler(mongoConnectionURI:str="mongodb://localhost:27017", \
                         dbName:str="kotomatic_db", \
                         collName:str="uniqueDevices", \
@@ -576,7 +567,7 @@ def ubd_mongo_handler(mongoConnectionURI:str="mongodb://localhost:27017", \
         else:
             mycol.insert_one({"_id": documentID, "devices": data[vin]})
 
-##Potentially transfer to different sub-module
+##Potentially transfer to different sub-module #Priority 3
 def lc_mongo_handler(mongoConnectionURI:str="mongodb://localhost:27017", \
                     dbName:str="kotomatic_db", \
                     collName:str="locationCollector", \
@@ -613,7 +604,43 @@ def lc_mongo_handler(mongoConnectionURI:str="mongodb://localhost:27017", \
         else:
             mycol.insert_one({"_id": documentID, "location": data[vin]})
 
+def dc_mongo_handler(mongoConnectionURI:str="mongodb://localhost:27017", \
+                    dbName:str="kotomatic_db", \
+                    collName:str="destinationCollector", \
+                    connectionTimeOut:int=10000, \
+                    data:dict=None
+                    ):
+    ##Need to figure out how to package this. Either needs to be in separate module, or parent functions
+    ##need to be methods not staticmethods or needs to be defined within parent function ##Priority 3
+    
+    ##Write doc string
+    #Verify input data
+    assert isinstance(data,dict), "Data must be a dictionary"
+    #Validate connection to client
+    try:
+        myclient = pymongo.MongoClient(mongoConnectionURI, serverSelectionTimeOutMS=connectionTimeOut)
+        myclient.server_info()
+    except pymongo.errors.ServerSelectionTimeoutError as err:
+        print(err)
+    #Verify selected db exists
+    assert dbName in myclient.list_database_names(), "dbName provided does not exist"
+    #Select db
+    mydb = myclient[dbName]
+    #Select or Create collection
+    mycol = mydb[collName]
 
+    #Update collection
+    for vin in data.keys():
+        documentID = vin
+        if vin in mycol.find().distinct("_id"):
+            for destination_record in data[vin].keys():
+                field = "destination."+str(destination_record)
+                payload = {"$set":{field : data[vin][destination_record]}}
+                mycol.update_one({"_id": documentID}, payload,upsert=True)
+        else:
+            mycol.insert_one({"_id": documentID, "destination": data[vin]})
+
+##Potentially transfer to different sub-module #Priority 3
 def single_vin_viz(vin:str='070aac90eee9f2eaf444a1ccbb894df0'):
 
     ##Write Doc String
@@ -655,4 +682,3 @@ def single_vin_viz(vin:str='070aac90eee9f2eaf444a1ccbb894df0'):
     fig.show()
 
 
-import sys
