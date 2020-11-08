@@ -3,7 +3,7 @@ import datetime
 import time
 import os
 import pytz
-import pymongo # not needed
+import pymongo
 import pandas as pd
 import plotly_express as px
 import random
@@ -548,7 +548,7 @@ class telematics:
                 ts = entry['timestamp']
 
                 if entry['vin'] == '123b9a7bbd7775662d3a55656dc2379b':
-                    pass
+                    continue
                 elif entry['vin'] in agg_timestamp_dict.keys():
                     if seq not in agg_timestamp_dict[entry['vin']].keys():
                         agg_timestamp_dict[entry['vin']][seq] = [ts, None]

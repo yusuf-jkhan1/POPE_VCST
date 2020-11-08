@@ -9,9 +9,12 @@ from sqlite3 import Error
 
 class TelematicsDao():
 
+    #Class Attributes
     lc = "locationCollector/"
     wtc = "waitTimeCollector/"
+    dc = "destinationCollector/"
 
+    #Initialize
     def __init__(self, s3_on = True):
         self.tableName = 'data'
         self.dbName = 'telematics'
@@ -31,6 +34,7 @@ class TelematicsDao():
     def initS3(self):
         print (" **** S3 INITIALIZED")
 
+    #Store Wait Collector
     def putWaitCollector(self, detailsInDict):
         if (self.s3_on):
             print("***** STORING IN S3")
@@ -41,51 +45,66 @@ class TelematicsDao():
             self.putWaitCollectorSQL(detailsInDict)
             print("***** DATA STORED IN S3 SUCCESSFULLY")
 
-
+    #Retrieve Wait Collector
     def getWaitCollector(self):
         if (self.s3_on):
             print("***** STORING IN S3")
             return self.getWaitCollectorS3()
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
         else:
             print("***** STORING IN S3")
             return self.getWaitCollectorSQL()
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
 
+    #Store Location Collector
     def putLocationCollector(self, detailsInDict):
         if (self.s3_on):
             print("***** STORING IN S3")
             self.putLocationCollectorS3(detailsInDict)
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
         else:
             print("***** STORING IN S3")
             self.putLocationCollectorSQL(detailsInDict)
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
 
-
+    #Retrieve Location Collector
     def getLocationCollector(self):
         if (self.s3_on):
             print("***** STORING IN S3")
             return self.getLocationCollectorS3()
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
         else:
             print("***** STORING IN S3")
             return self.getLocationCollectorSQL()
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
+
+    #Store Destination Collector
+    def putDestinationCollector(self, detailsInDict):
+        if (self.s3_on):
+            print("***** STORING IN S3")
+            self.putDestinationCollectorS3(detailsInDict)
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
+        ##Create corresponding storage methods for SQlite #Priority 3
+        # else:
+        #     print("***** STORING IN S3")
+        #     self.putDestinationCollectorSQL(detailsInDict)
+        #     print("***** DATA STORED IN S3 SUCCESSFULLY")
+
+    #Retrieve Destination Collector
+    def getDestinationCollector(self):
+        if (self.s3_on):
+            print("***** STORING IN S3")
+            return self.getDestinationCollectorS3()
+            #print("***** DATA STORED IN S3 SUCCESSFULLY")
+        ##Create corresponding retrieval methods for SQlite #Priority 3
+        # else:
+        #     print("***** STORING IN S3")
+        #     return self.getDestinationCollectorSQL()
+        #     print("***** DATA STORED IN S3 SUCCESSFULLY")
 
 
-    # def storeS3(self, detailsInDict):
-    #     print ("store s3")
-    #     for key in detailsInDict:
-    #         newDict = detailsInDict[key]
-    #         storeValue = str(json.dumps(newDict))
-    #         self.s3.put_object(
-    #             Body=storeValue,
-    #             Bucket=self.bucketName,
-    #             Key=key
-    #         )
-    #         print ( " value stored in s3" )
-
+    #Location Collector Methods for storing and retrieving from S3
+    #LC S3 Helper Method ##Encapsulate #Priority 3
     def putLocationCollectorS3(self, detailsInDict):
         for key in detailsInDict:
             newDict = detailsInDict[key]
@@ -95,7 +114,7 @@ class TelematicsDao():
                 newDict = data
             storeValue = str(json.dumps(newDict))
             self.putDataLocCollectorS3(key, storeValue)
-    
+    #LC S3 Helper Method ##Encapsulate #Priority 3
     def getLocationCollectorS3(self):
         s3Object = self.s3.list_objects(Bucket=self.bucketName)
         content = s3Object['Contents']
@@ -115,14 +134,23 @@ class TelematicsDao():
                 valueDict[vin] = deJson
         
         return valueDict
-        
+    #LC S3 Helper Method ##Encapsulate #Priority 3
+    def getDataByKeyLocCollectorS3(self, s3Key):
+        return self.getDataByKeyS3(self.lc+s3Key)
+    #LC S3 Helper Method ##Encapsulate #Priority 3
+    def putDataLocCollectorS3(self, vin, data):
+        self.putDataS3(self.lc+vin, data)
+
+    #Wait Time Collector Methods for storing and retrieving from S3
+    #WTC S3 Helper Method ##Encapsulate #Priority 3    
     def getWaitCollectorS3(self):
+        ##Change to use Prefix argument in get_object() call #Priority 4
         print ( "getWaitCollector")
         s3Object = self.s3.list_objects(Bucket=self.bucketName)
         content = s3Object['Contents']
         keyList = []
         valueDict={}
-        lcLen = len ( self.wtc)
+        lcLen = len (self.wtc)
         for key in content:
             tempKey = key["Key"]
             vin = ""
@@ -136,59 +164,66 @@ class TelematicsDao():
                 valueDict[vin] = deJson
 
         return valueDict
-
-
+    #WTC S3 Helper Method ##Encapsulate #Priority 3
     def putWaitCollectorS3(self, detailsInDict):
         for key in detailsInDict:
             newDict = detailsInDict[key]
             data = self.getDataByKeyWTCollectorS3(key)
             if data is not None:
+                ##This needs to perform object value traversal #Priority 1
                 data.update (newDict)
                 newDict = data
             storeValue = str(json.dumps(newDict))
             self.putDataWTCollectorS3(key, storeValue)
-
-
-    # def storeS3(self, detailsInDict):
-    #     print ("store s3")
-    #     for key in detailsInDict:
-    #         newDict = detailsInDict[key]
-    #         storeValue = str(json.dumps(newDict))
-            
-    #         self.s3.put_object(
-    #             Body=storeValue,
-    #             Bucket=self.bucketName,
-    #             Key=key
-    #         )
-    #         print ( " value stored in s3" )
-        
- 
-
-    # def getAllDataS3(self):
-    #     s3Object = self.s3.list_objects(Bucket=self.bucketName)
-    #     content = s3Object['Contents']
-    #     keyList = []
-    #     valueDict={}
-    #     for key in content:
-    #         keyList.append(key["Key"])
-    #         data = self.s3.get_object(Bucket=self.bucketName, Key=key["Key"])
-    #         content = data['Body'].read().decode()
-    #         deJson=json.loads(content)
-    #         valueDict[key["Key"]] = deJson
-    #     return valueDict
-
+    #WTC S3 Helper Method ##Encapsulate #Priority 3
     def getDataByKeyWTCollectorS3(self, s3Key):
         return self.getDataByKeyS3(self.wtc+s3Key)
-
+    #WTC S3 Helper Method ##Encapsulate #Priority 3
     def putDataWTCollectorS3(self, vin, data):
         self.putDataS3(self.wtc+vin, data)
-    
-    def getDataByKeyLocCollectorS3(self, s3Key):
-        return self.getDataByKeyS3(self.lc+s3Key)
 
-    def putDataLocCollectorS3(self, vin, data):
-        self.putDataS3(self.lc+vin, data)
-    
+    #Destination Collector Methods for storing and retrieving from S3
+    #DC S3 Helper Method ##Encapsulate #Priority 3
+    def putDestinationCollectorS3(self, detailsInDict):
+        for _vin in detailsInDict:
+            newDict = detailsInDict[_vin]
+            storedDict = self.getDataByKeyDestCollectorS3(_vin)
+            if storedDict is not None:
+                storedDict.update(newDict)
+                newDict = storedDict
+            storeValue = str(json.dumps(newDict))
+            self.putDataDestCollectorS3(_vin, storeValue)
+    #DC S3 Helper Method ##Encapsulate #Priority 3
+    def getDestinationCollectorS3(self):
+        ##Change to use Prefix argument in get_object() call #Priority 4
+        print ( "getDestinationCollector")
+        s3Object = self.s3.list_objects(Bucket=self.bucketName)
+        content = s3Object['Contents']
+        keyList = []
+        valueDict={}
+        dcLen = len(self.dc)
+        for key in content:
+            tempKey = key["Key"]
+            vin = ""
+            if (tempKey.startswith(self.wtc)):
+                vin = tempKey[tempKey.index(self.dc)+dcLen:]
+            if ( len(vin) > 0 ): 
+                keyList.append(tempKey)
+                data = self.s3.get_object(Bucket=self.bucketName, Key=tempKey)
+                content = data['Body'].read().decode()
+                deJson=json.loads(content)
+                valueDict[vin] = deJson
+
+        return valueDict
+    #DC S3 Helper Method ##Encapsulate #Priority 3
+    def getDataByKeyDestCollectorS3(self, s3Key):
+        return self.getDataByKeyS3(self.dc+s3Key)
+    #DC S3 Helper Method ##Encapsulate #Priority 3
+    def putDataDestCollectorS3(self, vin, data):
+        return self.putDataS3(self.dc+vin, data)
+
+    #Generic S3 Helper Method
+    #S3 GET Method ##Encapsulate #Priority 3
     def getDataByKeyS3(self, s3Key):
         try:
             data = self.s3.get_object(Bucket=self.bucketName, Key=s3Key)
@@ -198,7 +233,7 @@ class TelematicsDao():
         except self.s3.exceptions.NoSuchKey:
             print("no such key in bucket")
         return None
-
+    #S3 PUT Method ##Encapsulate #Priority 3
     def putDataS3(self, s3Key, data):
         self.s3.put_object(
             Body=data,
@@ -207,6 +242,8 @@ class TelematicsDao():
         )
         print ( " value stored in s3" )
 
+
+    ##Probably separate SQLite methods into separate class #Priority 3
     def initSQL(self):
         try:
             connection = sqlite3.connect(self.dbName)
