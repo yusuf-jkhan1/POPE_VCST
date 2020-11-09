@@ -41,9 +41,9 @@ class TelematicsDao():
             self.putWaitCollectorS3(detailsInDict)
             print("***** DATA STORED IN S3 SUCCESSFULLY")
         else:
-            print("***** STORING IN S3")
+            print("***** STORING IN SQLLITE")
             self.putWaitCollectorSQL(detailsInDict)
-            print("***** DATA STORED IN S3 SUCCESSFULLY")
+            print("***** DATA STORED IN SQLLITE SUCCESSFULLY")
 
     #Retrieve Wait Collector
     def getWaitCollector(self):
@@ -55,6 +55,7 @@ class TelematicsDao():
             print("***** STORING IN S3")
             return self.getWaitCollectorSQL()
             #print("***** DATA STORED IN S3 SUCCESSFULLY")
+            print("***** DATA STORED IN SQLLITE SUCCESSFULLY")
 
     #Store Location Collector
     def putLocationCollector(self, detailsInDict):
@@ -66,6 +67,8 @@ class TelematicsDao():
             print("***** STORING IN S3")
             self.putLocationCollectorSQL(detailsInDict)
             #print("***** DATA STORED IN S3 SUCCESSFULLY")
+            print("***** DATA STORED IN SQLLITE SUCCESSFULLY")
+
 
     #Retrieve Location Collector
     def getLocationCollector(self):
@@ -74,9 +77,10 @@ class TelematicsDao():
             return self.getLocationCollectorS3()
             #print("***** DATA STORED IN S3 SUCCESSFULLY")
         else:
-            print("***** STORING IN S3")
+            print("***** STORING IN SQLLITE")
             return self.getLocationCollectorSQL()
             #print("***** DATA STORED IN S3 SUCCESSFULLY")
+            print("***** DATA STORED IN SQLLITE SUCCESSFULLY")
 
     #Store Destination Collector
     def putDestinationCollector(self, detailsInDict):
@@ -115,6 +119,7 @@ class TelematicsDao():
             storeValue = str(json.dumps(newDict))
             self.putDataLocCollectorS3(key, storeValue)
     #LC S3 Helper Method ##Encapsulate #Priority 3
+
     def getLocationCollectorS3(self):
         s3Object = self.s3.list_objects(Bucket=self.bucketName)
         content = s3Object['Contents']
@@ -176,6 +181,47 @@ class TelematicsDao():
             storeValue = str(json.dumps(newDict))
             self.putDataWTCollectorS3(key, storeValue)
     #WTC S3 Helper Method ##Encapsulate #Priority 3
+            newDict = self.mergeWaitCollectorS3(key, data, newDict)
+            storeValue = str(json.dumps(newDict))
+            self.putDataWTCollectorS3(key, storeValue)
+
+    def mergeWaitCollectorS3(self, vin, existingDict, newDict):
+        for key in newDict:
+            data = existingDict.get(key)
+            if ( data is None):
+                existingDict[key] = newDict.get(key)
+            else:
+                existingDict[key] = [data[0], newDict.get(key)[1]]
+        return existingDict
+
+    # def storeS3(self, detailsInDict):
+    #     print ("store s3")
+    #     for key in detailsInDict:
+    #         newDict = detailsInDict[key]
+    #         storeValue = str(json.dumps(newDict))
+            
+    #         self.s3.put_object(
+    #             Body=storeValue,
+    #             Bucket=self.bucketName,
+    #             Key=key
+    #         )
+    #         print ( " value stored in s3" )
+        
+ 
+
+    # def getAllDataS3(self):
+    #     s3Object = self.s3.list_objects(Bucket=self.bucketName)
+    #     content = s3Object['Contents']
+    #     keyList = []
+    #     valueDict={}
+    #     for key in content:
+    #         keyList.append(key["Key"])
+    #         data = self.s3.get_object(Bucket=self.bucketName, Key=key["Key"])
+    #         content = data['Body'].read().decode()
+    #         deJson=json.loads(content)
+    #         valueDict[key["Key"]] = deJson
+    #     return valueDict
+
     def getDataByKeyWTCollectorS3(self, s3Key):
         return self.getDataByKeyS3(self.wtc+s3Key)
     #WTC S3 Helper Method ##Encapsulate #Priority 3
@@ -261,6 +307,7 @@ class TelematicsDao():
             # # Sample Insert
             # connection.execute("INSERT INTO sample VALUES (?,?)",("1","test_name"))
             connection.commit()
+            connection.close()
         except Error as e:
             #ignore the error
             print("")
@@ -277,11 +324,27 @@ class TelematicsDao():
         except Error as e:
             print("Error occurred: " + str(e))
         try:
-            connection.execute("INSERT INTO wtc VALUES (?,?,?,?)",(vin,loc,startTime, endTime))
+            ############### EDIT SQL STATEMENT ###################################
+            sql = """ SELECT * from wtc
+                         where vin = ? and seqCode =? ;"""
+            ######################################################################
+            
+            cursor = connection.execute(sql, (vin, loc))
+            resultSet = cursor.fetchall()
+            exist = False
+            if len(resultSet) > 0 :
+                exist = True
+
+            if ( exist ):
+                print ("EXECUTING IF CONDITION UPDATE")
+                connection.execute("UPDATE wtc SET vin = ?, seqCode = ?,  endTime = ? where vin=? and seqCode=?",(vin,loc,endTime,vin,loc))
+            else:    
+                connection.execute("INSERT INTO wtc VALUES (?,?,?,?)",(vin,loc,startTime, endTime))
+
             connection.commit()
         except Error as e:
              print("Error occurred: " + str(e))
-    
+
     def putDataLocationCollectorSQL(self, vin, loc, lat, lon):
         try:
             connection = sqlite3.connect(self.dbName)
@@ -289,8 +352,28 @@ class TelematicsDao():
         except Error as e:
             print("Error occurred: " + str(e))
         try:
-            connection.execute("INSERT INTO lc VALUES (?,?,?,?)",(vin,loc,lat, lon))
+            ############### EDIT SQL STATEMENT ###################################
+            sql = """ SELECT * from lc
+                         where vin = ? and seqCode =? ;"""
+            ######################################################################
+            
+            cursor = connection.execute(sql, (vin, loc))
+            resultSet = cursor.fetchall()
+            exist = False
+            if len(resultSet) > 0 :
+                exist = True
+            print ( "######### VIN #####", vin)
+            print ( "######### LOC #####", loc)
+            print("###################",exist)
+            if ( exist ):
+                print ("EXECUTING IF CONDITION UPDATE")
+                connection.execute("UPDATE lc SET vin = ?, seqCode = ?, lat = ?, lon = ? where vin=? and seqCode=?",
+                (vin,loc,lat, lon,vin,loc))
+            else:    
+                print ("EXECUTING else CONDITION insert")
+                connection.execute("INSERT INTO lc VALUES (?,?,?,?)",(vin,loc,lat, lon))
             connection.commit()
+            connection.close()
         except Error as e:
              print("Error occurred: " + str(e))
 
