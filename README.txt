@@ -1,5 +1,5 @@
 ##############################################################################
-# PLacement Optimization of Public EV Charging Stations using Telematics Data
+# Placement Optimization of Public EV Charging Stations using Telematics Data
 ##############################################################################
 
     Authors: 

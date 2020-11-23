@@ -9,6 +9,17 @@ class mongo:
         self.collection = self.db[collection]
 
     def mongo_dc_to_pd(self):
+        """
+        Objective:
+            This function specifically operates on the destinationCollector collection in MongoDB
+            Its not generalizable, as it's dependent on the collection structure.
+            It connects to the collection, and flattens the collection into a pandas dataframe
+        
+        Returns:
+            Pandas dataframe representing long format of all documents in collection
+
+        """
+
         id_list = self.collection.find().distinct("_id")
         dest_raw_df = pd.DataFrame(columns = ['seq', 'Lat', 'Lon', 'vin'])
         for vin in id_list:
@@ -20,6 +31,16 @@ class mongo:
         return dest_raw_df
 
     def mongo_dtc_to_pd(self):
+        """
+        Objective:
+            This function specifically operates on the dwellTimeCollector collection in MongoDB
+            Its not generalizable, as it's dependent on the collection structure.
+            It connects to the collection, and flattens the collection into a pandas dataframe
+        
+        Returns:
+            Pandas dataframe representing long format of all documents in collection
+
+        """
         id_list = self.collection.find().distinct("_id")
         dwell_raw_df = pd.DataFrame(columns = ['seq', 'start_timestamp', 'end_timestamp', 'vin'])
         for vin in id_list:
