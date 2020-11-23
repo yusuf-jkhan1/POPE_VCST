@@ -3,7 +3,7 @@
 ##############################################################################
 
     Authors: 
-    Yusuf Khan, Sai Kiran Bagvi, Kartik Dhawan, Niranjan Ramarajar, Ketaki Santan
+    Yusuf Khan, Sai Kiran Bavgi, Kartik Dhawan, Niranjan Ramarajar, Ketaki Santan
 
     Objective:
     At a high level, we want to develop a method to determine the optimal placement of public EV charging stations
@@ -134,6 +134,9 @@
     This contains some brief information about the modules we created along with all the demo code on how to run everything end to end.
     At the end of the notebook, you can either display the final output visualization using the methods in the module we provided
     or save the output visualization as an html file and open it yourself in a browser.
+
+    If you just want to see the final output, open the html file in a chrome or firefox browser. This file is too large
+    to open in Github directly, so it must be downloaded first.
 
     Note:
     Some of the code may only appear in the "Executable.ipynb" symbollically, and may not be directly executable because the 
