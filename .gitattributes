@@ -1,2 +1,3 @@
 POPE_VCST/koto/* linguist-vendored
 *.py linguist-vendored=false
+*.ipynb linguist-vendored=false
