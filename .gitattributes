@@ -1,2 +1,4 @@
 POPE_VCST/koto/* linguist-vendored
+POPE_VCST/koto/archive/* linguist-vendored
+POPE_VCST/koto/archive/koto/* linguist-vendored
 *.py linguist-vendored=false
