@@ -1,4 +1,1 @@
-POPE_VCST/*.html linguist-detectable=false
-POPE_VCST/koto/*.html linguist-detectable=false
-POPE_VCST/koto/archive/*.html linguist-detectable=false
-POPE_VCST/* linguist-language=Python
+POPE_VCST/koto/* linguist-language=Python
