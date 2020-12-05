@@ -1,4 +1,5 @@
-*.html linguist-detectable=false 
+*.html linguist-detectable=false
+POPE_VCST/koto/*.html linguist-detectable=false 
 POPE_VCST/* linguist-vendored
 POPE_VCST/koto/* linguist-vendored
 POPE_VCST/koto/archive/* linguist-vendored
