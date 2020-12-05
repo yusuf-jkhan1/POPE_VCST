@@ -1,4 +1,3 @@
-public/* linguist-generated
-scot-ui/public/* linguist-vendored
-lib/* linguist-language=Perl
-bin/* linguist-language=Perl
+POPE_VCST/* linguist-generated
+POPE_VCST/koto/* linguist-vendored
+archive/* linguist-language=Perl
