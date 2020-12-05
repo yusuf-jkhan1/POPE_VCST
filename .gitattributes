@@ -1,3 +1,4 @@
-POPE_VCST/* linguist-generated
-POPE_VCST/koto/* linguist-vendored
-archive/* linguist-language=Perl
+POPE_VCST/*.html linguist-detectable=false
+POPE_VCST/koto/*.html linguist-detectable=false
+POPE_VCST/koto/archive/*.html linguist-detectable=false
+POPE_VCST/koto/archive/koto/*.html linguist-detectable=false
