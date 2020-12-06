@@ -12,7 +12,7 @@ class telematics:
 
     #Initialize
     def __init__(self, access_token:str=None,access_token_file:str="access_token.txt"):
-        ##Re-write to do cURL request ##Priority 5
+        #TODO: ##Re-write to do cURL request ##Priority 5
         self.api_url = "https://gateway.api.cloud.wso2.com/t/hondaranddameri/iep/v1/query"
         if access_token:
             self.token = access_token
@@ -23,120 +23,106 @@ class telematics:
         self.headers = {'Authorization': 'Bearer %s' % self.token}
 
     #Vin Table single request
-    def vin_table_request(self, \
-                          fetch_size:int=100, \
-                          columns:list=[], \
-                          stream_request:bool=False, \
-                          chunk_size:int=None):
+    def vin_table_request(self,
+                          fetch_size:int=100,
+                          columns:list=[]):
         """
-        Objective:
+        Return data from VIN table for Kotomatic Telematics API
 
-            Return data from VIN table for Kotomatic Telematics API
+        Parameters
+        ----------
+        fetch_size : int
+            Number of records to retrieve
+        columns : list
+            Names of columns to select.
+            Ref --> https://developer.kotomatic.io/data-products/telematics-data-documentation/
 
-        Parameters:
-
-            :fetch_size(int):100
-                Number of records to retrieve
-            :columns(list):[]
-                Names of columns to select.
-                Ref: https://developer.kotomatic.io/data-products/telematics-data-documentation/
-            :stream_request(bool):False
-                Boolean to indicate if request should be streamed
-            :chunk_size(int):None **Building, unused right now**
-                If request is streamed, chunk size will be byte size for each streamed response
-
-        Return:
-
-            if stream_request=False
-                :rtype: list
-                :rvalue: List of dictionaries containing keys corresponding to selected columns from columns arg
-            if stream_request=True
-                :rtype: requests module response object
-                :rvalue: response object
+        Returns
+        -------
+        list
+            List of dictionaries containing keys corresponding to selected columns from columns arg
 
         """
         #Build Request
-        assert len(columns) > 0, "No columns selected"
+
+        if len(columns) > 0:
+            raise Exception("No colums selected")
+
         query_columns = " ".join(columns) 
         query_value = "{vin(input:{next:{fetch:"+ str(fetch_size) + "}}){" + query_columns + "}}"
         query_arg = {"query" : query_value}
 
         #Get and check
-        response = requests.post(self.api_url,headers= self.headers, json= query_arg, stream= stream_request)
-        assert response.status_code == 200, "Response Code: " + str(response.status_code)
+        response = requests.post(self.api_url,headers= self.headers, json= query_arg)
+        if response.status_code < 400:
+            raise Exception("Response Code: " + str(response.status_code))
 
         #Unpack
         response_list = response.json()['data']['vin']
 
-        ##Improve or remove Streaming option
-        if stream_request:
-            return response
-        else:
-            return response_list
+        return response_list
 
     #Timestamp Table single request
-    def ts_table_request(self, \
-                        fetch_size:int=100, \
-                        columns:list=[], \
-                        stream_request:bool=False, \
-                        chunk_size:int=None, \
-                        min_date:str=None, \
-                        min_time:str="00:00:00", \
-                        max_date:str=None, \
-                        max_time:str="23:59:59", \
-                        timestamp_correction:bool=True, \
-                        timezone:str="US/Eastern", \
+    def ts_table_request(self,
+                        fetch_size:int=100,
+                        columns:list=[],
+                        min_date:str=None,
+                        min_time:str="00:00:00",
+                        max_date:str=None,
+                        max_time:str="23:59:59",
+                        timestamp_correction:bool=True,
+                        timezone:str="US/Eastern",
                         fmt:str="%Y-%m-%d %H:%M:%S %Z"):
         """
-        Objective:
+        Return data from timestamp table for Kotomatic Telematics API
 
-            Return data from Timestamp table for Kotomatic Telematics API
+        Parameterize call to timestamp table with date and time upper and lower bounds for response.
 
-        Parameters:
-
-            :fetch_size(int):100
-                Number of records to retrieve
-            :columns(list):[]
-                Names of columns to select.
-                Ref: https://developer.kotomatic.io/data-products/telematics-data-documentation/
-            :stream_request(bool):False
-                Boolean to indicate if request should be streamed
-            :chunk_size(int):None
-                If request is streamed, chunk size will be byte size for each streamed response
-            :min_date(str):None
-                string of lower date bound, using format "YYYY-MM-DD"
-            :min_time(str):"00:00:00"
-                string of lower time bound, using format "HH:MM:SS"
-            :max_date(str):None
-                string of upper date bound, using format "YYYY-MM-DD"
-            :max_time(str):"23:59:59"
-                string of upper time bound, using format "HH:MM:SS"
-            :timestamp_correction(bool):True
-                Boolean to indicate if timestamp should be reformatted in output
-            :timezone(str):"US/Eastern"
-                string of valid pytz module timezone
-                Ref: See pytz.all_timezones attribute
-            :fmt(str):"%Y-%m-%d %H:%M:%S %Z"
-                string for formatting timestamp using .strftime() method
+        Parameters
+        ----------
+        fetch_size : int
+            Number of records to retrieve
+        columns : list
+            Names of columns to select.
+            Ref --> https://developer.kotomatic.io/data-products/telematics-data-documentation/
+        min_date : str
+            string of lower date bound, using format "YYYY-MM-DD"
+        min_time : str
+            string of lower time bound, using format "HH:MM:SS"
+        max_date : str
+            string of upper date bound, using format "YYYY-MM-DD"
+        max_time : str
+            string of upper time bound, using format "HH:MM:SS"
+        timestamp_correction : bool
+            Boolean to indicate if timestamp should be reformatted in output
+        timezone : "US/Eastern"
+            string of valid pytz module timezone
+            Ref --> See pytz.all_timezones attribute
+        fmt : str
+            string for formatting timestamp using .strftime() method
             
-        Return:
+        Returns
+        -------
+        list
+            List of dictionaries containing keys corresponding to selected columns from columns arg
 
-            if stream_request=False
-                :rtype: list
-                :rvalue: List of dictionaries containing keys corresponding to selected columns from columns arg
-            if stream_request=True
-                :rtype: requests module response object
-                :rvalue: response object
-
+        Note
+        ----
+            The timestamp conversion and timezone correction only handles instances of one timezone, if data is being
+            collected from multiple timezones at once it's best to set the timezone correction to UTC, then handle
+            the timezone correction separately if needed.
         """
+
         #Build Request
-        assert len(columns) > 0, "No columns selected"
+
+        if len(columns) > 0:
+            raise Exception("No colums selected")
+
         if "timestamp" in columns:
             pass
         else:
             columns.append("timestamp")
         query_columns = " ".join(columns)
-
 
         ##Write assertion for valid date and time format #Priority 4
         minTs = "minTs: \""+ min_date +"T"+ min_time+ ".000Z"+ "\" "
@@ -149,20 +135,20 @@ class telematics:
         #Get and check
         n_tries = 0
         while n_tries <= 3:
-            response = requests.post(self.api_url,headers= self.headers, json= query_arg, stream= stream_request)
+            response = requests.post(self.api_url,headers= self.headers, json= query_arg)
             if response.status_code < 400:
                 break
             else:
                 time.sleep(60)
                 n_tries+=1
-        assert response.status_code < 400, "Response Code: " + str(response.status_code)
+
+        if response.status_code < 400:
+            raise Exception("Response Code: " + str(response.status_code))
 
         #Unpack
         response_list = response.json()['data']['ts']
 
         #Timestamp Corrector 
-        ##Make Timestamp corrector static class function ##Priority 5
-        ##Make Timestamp corrector adjust for vehicles native timezone ##Priority 3
         if timestamp_correction:
             ts_corrector = lambda x: datetime.datetime.fromtimestamp(x/1000).astimezone(pytz.timezone(timezone)).strftime(fmt)
 
@@ -171,90 +157,73 @@ class telematics:
             for i in range(len(timestamp_corrected_list)):
                 response_list[i]['timestamp'] = timestamp_corrected_list[i]
 
-        #Return
-        if stream_request:
-            return response
-        else:
-            return response_list
+        return response_list
+
 
     #Timestamp Table looping request 
     ##Build in handling for returnsize > fetchsize ##Priority 2
     ##Build in warnings for returnsize > fetchsize ##Priority 2
     ##Separate into two functions (or add handling) one where local workspace dictionary is output object
     ##Another where data is being stored externally e.g. MongoDB
-    def ts_table_scrape(self, \
-                        fetch_size:int=100, \
-                        columns:list=[], \
-                        stream_request:bool=False, \
-                        chunk_size:int=None, \
-                        start_date:str=None, \
-                        start_time:str="00:00:00", \
-                        time_window:int=5, \
-                        n_loops:int=5, \
-                        timestamp_correction:bool=True, \
-                        timezone:str="US/Eastern", \
-                        fmt:str="%Y-%m-%d %H:%M:%S %Z", \
-                        functions:list=[], \
-                        api_log:bool=True, \
-                        api_log_fname:str="apiCallLog.txt", \
-                        function_log:bool=True, \
+    def ts_table_scrape(self,
+                        fetch_size:int=100,
+                        columns:list=[],
+                        start_date:str=None,
+                        start_time:str="00:00:00",
+                        time_window:int=5,
+                        n_loops:int=5,
+                        timestamp_correction:bool=True,
+                        timezone:str="US/Eastern",
+                        fmt:str="%Y-%m-%d %H:%M:%S %Z",
+                        functions:list=[],
+                        api_log:bool=True,
+                        api_log_fname:str="apiCallLog.txt",
+                        function_log:bool=True,
                         function_log_fname:str="functionExeLog.txt"):
 
         """
-        Objective:
+        Iteratively fetch data from the timestamp table for a rolling time window
 
-            Return data from the telematics API, timestamp table for a specified window of time.
-            Then, push that window of time forward and repeat for n_loops.
+        This method will touch every record of the data, assuming the fetch size and
+        and the return size are compatible. When they are incompatible there will be further handling.
+        This will allow the user to add custom functions as an argument.
+        The custom function ideally is able to work though iterative aggregation
+        and updates every loop to build an output answer or intermediate data structure
 
-            ##Add below to readme
-            This method will touch every record of the data, assuming the fetch size and
-            and the return size are compatible. When they are incompatible there will be further handling.
-            This will allow the user to add custom functions (##Maybe some standard in-built) as an argument.
-            The custom function ideally is able to work though iterative aggregation
-            and updates every loop to build an output answer or intermediate data structure
+        Parameters
+        ----------
 
-        Parameters:
-
-            :fetch_size(int):100
-                Number of records to retrieve
-            :columns(list):[]
-                Names of columns to select.
-                Ref: https://developer.kotomatic.io/data-products/telematics-data-documentation/
-            :stream_request(bool):False
-                Boolean to indicate if request should be streamed
-            :chunk_size(int):None
-                If request is streamed, chunk size will be byte size for each streamed response
-            :min_date(str):None
-                string of lower date bound, using format "YYYY-MM-DD"
-            :min_time(str):"00:00:00"
-                string of lower time bound, using format "HH:MM:SS"
-            :max_date(str):None
-                string of upper date bound, using format "YYYY-MM-DD"
-            :max_time(str):"23:59:59"
-                string of upper time bound, using format "HH:MM:SS"
-            :timestamp_correction(bool):True
-                Boolean to indicate if timestamp should be reformatted in output
-            :timezone(str):"US/Eastern"
-                string of valid pytz module timezone
-                Ref: See pytz.all_timezones attribute
-            :fmt(str):"%Y-%m-%d %H:%M:%S %Z"
-                string for formatting timestamp using .strftime() method
-            
-        Return:
-            Per Loop:
-                if stream_request=False
-                    :rtype: list
-                    :rvalue: List of dictionaries containing keys corresponding to selected columns from columns arg
-                if stream_request=True
-                    :rtype: requests module response object
-                    :rvalue: response object
-            Final:
-                if output structure is handled locally:
-                    :rtype: dictionary(s)
-                    :rvalue: dictionary that custom function(s) build(s)
-                if output structure is stored externally:
-                    :rtype: None
-                    :rvalue: None
+        fetch_size : int
+            Number of records to retrieve
+        columns : list
+            Names of columns to select.
+            Ref --> https://developer.kotomatic.io/data-products/telematics-data-documentation/
+        min_date : str
+            string of lower date bound, using format "YYYY-MM-DD"
+        min_time : str
+            string of lower time bound, using format "HH:MM:SS"
+        max_date : str
+            string of upper date bound, using format "YYYY-MM-DD"
+        max_time : str
+            string of upper time bound, using format "HH:MM:SS"
+        timestamp_correction : bool
+            Boolean to indicate if timestamp should be reformatted in output
+        timezone : str
+            string of valid pytz module timezone
+            Ref --> See pytz.all_timezones attribute
+        fmt : str
+            string for formatting timestamp using .strftime() method
+        functions : list
+            list of query functions that operate on each response
+        api_log : bool
+            Boolean if log should be generated with api response metrics
+        api_log_fname : str
+            Filename for api log file
+        function_log : bool
+            Boolean if log should be generated with function execution metrics
+        function_log_fname : str
+            Filename for function log file
+                    
         
         """
 
