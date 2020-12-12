@@ -2,8 +2,8 @@
 # Placement Optimization of Public EV Charging Stations using Telematics Data
 ##############################################################################
 
-    Authors: 
-    Yusuf Khan, Sai Kiran Bavgi, Kartik Dhawan, Niranjan Ramarajar, Ketaki Santan
+    Author: 
+    Yusuf Khan
 
     Objective:
     At a high level, we want to develop a method to determine the optimal placement of public EV charging stations
