@@ -33,7 +33,7 @@ comparisons and updates the data storage.
 ### **Candidate Location Identification**
 > Modules: kotoDensityScan
 
-![Dests](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/ColumbusGif.gif)
+![Dests](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/CbusDests.png)
 
 
 In the candidate location identification stage, we use the stored output from the previous stage, 
