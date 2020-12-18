@@ -21,6 +21,8 @@ Develop a method to determine the Optimal Placement of EV public charging Statio
         
 > **Modules**: ~~kotoTelematics~~, kotoQuery, kotoDataHandler, kotoMongoUtils, kotoS3SqliteUtils
 
+![AcWr](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/AcWr.png)
+
 In the data acquisition stage we fetch data from the 99P developer labs API, while working around the 
 API single call throughput volume constraint, as well as our local workspace memory constraints. We 
 loop and fetch from the API, and then with each response, we apply a query function that iteratively 
