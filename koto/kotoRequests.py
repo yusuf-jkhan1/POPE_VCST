@@ -231,8 +231,6 @@ class kotoTsTableScraper:
 
         self.minTs = self.minTs + datetime.timedelta(seconds=self.time_window*60)
         self.maxTs = self.maxTs + datetime.timedelta(seconds=self.time_window*60)
-        print(f"minTs: {self.minTs}")
-        print(f"maxTs: {self.maxTs}")
     
     def _log_api_call(self, start_time, end_time, run_time, n_columns, i, response):
         """Creates log file in workspace keeping track of API request parameters and response times

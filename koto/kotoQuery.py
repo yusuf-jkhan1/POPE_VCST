@@ -42,6 +42,44 @@ class destination_collector:
 
             return agg_destination_dict
 
+class dwell_time_collector:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def query(response_object):
+
+        if len(response_object) == 0:
+
+            agg_dwell_dict = {}
+
+        else:
+            #Necessary fields
+            neccesary_fields = ['vin', 'timestamp', 'sequence']
+
+            #Check if necessary fields are available
+            valid_fields = all(field in response_object[0].keys() for field in neccesary_fields)
+            assert valid_fields, "Not all required fields are present in the response object"
+
+            agg_dwell_dict = {}
+            for entry in response_object:
+                seq = str(entry['sequence'])
+                vin = entry['vin']
+                ts = entry['timestamp']
+
+                if entry['sequence'] is None:
+                    continue
+                elif vin not in agg_dwell_dict.keys():
+                    payload = {seq : [ts, None]}
+                    agg_dwell_dict[entry['vin']] = payload
+                elif vin in agg_dwell_dict.keys() and seq in agg_dwell_dict[vin].keys():
+                    agg_dwell_dict[vin][seq][1] = ts
+                else:
+                    agg_dwell_dict[vin][seq] = [ts, None]
+
+        return agg_dwell_dict
+
 class location_collector:
 
     columns = ['vin', 'navigation_location_coordinate_longitude', 'navigation_location_coordinate_latitude', 'timestamp']
