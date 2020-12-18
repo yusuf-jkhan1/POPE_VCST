@@ -21,7 +21,7 @@ Develop a method to determine the Optimal Placement of EV public charging Statio
         
 > **Modules**: ~~kotoTelematics~~, kotoQuery, kotoDataHandler, kotoMongoUtils, kotoS3SqliteUtils
 
-![AcWr](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/AcWr.png)
+![AcWr](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/AcWr.png/)
 
 In the data acquisition stage we fetch data from the 99P developer labs API, while working around the 
 API single call throughput volume constraint, as well as our local workspace memory constraints. We 
@@ -32,6 +32,9 @@ comparisons and updates the data storage.
     
 ### **Candidate Location Identification**
 > Modules: kotoDensityScan
+
+![Dests](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/ColumbusGif.gif)
+
 
 In the candidate location identification stage, we use the stored output from the previous stage, 
 specifically, the geospatial features, which we then pass through sci-kit learn's implementation 
@@ -44,6 +47,8 @@ the trip SEQuence number, and LATitutde and LONgitude.
 ### **Cluster Feature Engineering**
 
 > Modules: kotoDistMatrix ; Notebooks: Executable.ipynb
+
+![Arriv](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/ArrivalHomog.png)
 
 Once the clusters have been identified, then we enrich them with features to help us select which features
 are most appropriate to be selected for EV charging station placements. The majority of this code, is not 
@@ -61,6 +66,8 @@ placement of EV charging stations would achieve is to signal to the latent EV ad
 latent EV adopter probability is i.i.d then, reaching more people should be the best approach for our 
 objective. So we multiply this observed diversity with expected membership, to output our utility score.
 
+![InterArriv](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/InterArrivalDist.png)
+
 The second portion of the feature engineering, is to take a representative location within the cluster, 
 by simply finding the average of the latitudes and longitudes, and passing these through the kotoDistMatrix 
 module which calls the google distance matrix api and returns an adjacency matrix of driving distance 
@@ -71,7 +78,7 @@ into account.
 
 > Modules: kotoOptimus
 
-
+![NetworkDiagram](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/NetDiag.png)
 
 At this point, we have a utility score for each candidate location, the driving distance between each of them, 
 and a representative cluster coordinate. At this point the structure of our data resembles a graph network, 
@@ -96,7 +103,9 @@ Minimize (total selection cost - total selection utility)
 The output at this stage is a vector of binary variables, indicating whether a node was selected or not.
     
 ### **Visualization**
-> Modules: kotoMap  
+> Modules: kotoMap
+
+![Selected](https://github.com/yusuf-jkhan1/POPE_VCST/blob/master/imgs/Select.png)
 
 Now we have, raw telematics data, the density clustered and labeled data, as well as the optimized selection from 
 clusters data. We already created a custom layout that we believe highlights the narrative and value of our 
