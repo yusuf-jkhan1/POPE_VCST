@@ -1,3 +1,11 @@
 apiCallLog.txt
 access_token.txt
 module_test.ipynb
+koto/data/cluster_features_df.csv
+koto/data/cluster_selection_df.csv
+koto/data/dens_df.csv
+koto/data/dest_draw_df.csv
+koto/data/dist_mat.csv
+koto/data/raw_clusters_df.csv
+koto/data/raw_destinations_df.csv
+koto/data/dwell_raw_df.csv
